@@ -2,20 +2,24 @@ cbuffer MatrixBuffer
 {
     matrix worldViewProjectionMatrix;
     matrix worldMatrix;
+    float4 cameraPosition;
 };
 
 struct VertexInput
 {
     float4 position : POSITION;
     float4 normal : NORMAL;
-    float2 uv : TEXCOORD;
+    float4 binormal : BINORMAL;
+    float4 tangent : TANGENT;
+    float3 uv : TEXCOORD;
 };
 
 struct VertexOutput
 {
     float4 position : SV_POSITION;
+    float3 positionW : POSITION;
     float3 normal : NORMAL;
-    float2 uv : TEXCOORD;
+    float3 uv : TEXCOORD;
     float3 view : TEXCOORD1;
 };
 
@@ -27,9 +31,10 @@ VertexOutput main(VertexInput IN)
     IN.normal.w = 0.0f;
 
     OUT.uv = IN.uv;
+    OUT.positionW = mul(IN.position, worldMatrix).xyz;
     OUT.position = mul(IN.position, worldViewProjectionMatrix);
     OUT.normal = mul(IN.normal, worldMatrix);
-    OUT.view = float3(0.0f, 0.0f, -2.0f) - mul(IN.position, worldMatrix).xyz;
+    OUT.view = cameraPosition.xyz - mul(IN.position, worldMatrix).xyz;
 
     return OUT;
 }

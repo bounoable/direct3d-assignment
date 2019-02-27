@@ -1,5 +1,7 @@
 #pragma once
 #include "TextureShader.h"
+#include "Light.h"
+#include <unordered_set>
 
 class LightTextureShader :
 	public TextureShader
@@ -10,22 +12,25 @@ public:
 
 	void init(ID3D11Device* device);
 
-	void setLightProperties(XMFLOAT3 direction, FLOAT intensity, XMFLOAT4 color)
+	void addLight(Light light)
 	{
-		_lightBuffer.direction = direction;
-		_lightBuffer.intensity = intensity;
-		_lightBuffer.color = color;
+		if (_lightCount >= 12) {
+			return;
+		}
+
+		_lightBuffer.lights[_lightCount] = light;
+		_lightCount++;
 	}
 
 protected:
 	void createLightBuffer(ID3D11Device* device);
 	void setShaderParameters(ID3D11DeviceContext* deviceContext);
 
+	unsigned int _lightCount = 0;
+
 	struct LightBuffer
 	{
-		XMFLOAT3 direction = {};
-		FLOAT intensity = 0.0f;
-		XMFLOAT4 color = {};
+		Light lights[12];
 	};
 
 	LightBuffer _lightBuffer = {};

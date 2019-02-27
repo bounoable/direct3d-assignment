@@ -38,9 +38,9 @@ struct VertexPNT3
 	XMFLOAT3 normal;
 	XMFLOAT3 binormal;
 	XMFLOAT3 tangent;
-	XMFLOAT2 uv;
+	XMFLOAT3 uv;
 
-	VertexPNT3(FLOAT x, FLOAT y, FLOAT z, FLOAT xn, FLOAT yn, FLOAT zn, FLOAT u, FLOAT v) : position(x, y, z), normal(xn, yn, zn), uv(u, v)
+	VertexPNT3(FLOAT x, FLOAT y, FLOAT z, FLOAT xn, FLOAT yn, FLOAT zn, FLOAT u, FLOAT v, FLOAT opacity = 1.0f) : position(x, y, z), normal(xn, yn, zn), uv(u, v, opacity)
 	{
 	}
 };

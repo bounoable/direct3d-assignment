@@ -5,8 +5,6 @@
 #include "ColorShader.h"
 #include "TextureShader.h"
 #include "LightTextureShader.h"
-#include "PointLightTextureShader.h"
-#include "SpotLightTextureShader.h"
 #include "Camera.h"
 
 using namespace std;
@@ -17,14 +15,10 @@ Graphics::Graphics(HWND hWnd, UINT screenWidth, UINT screenHeight)
 	_d3d = new Direct3D(hWnd, screenWidth, screenHeight);
 
 	createCamera(screenWidth, screenHeight);
-
-	// InputHandler::instance()->listen(this);
 }
 
 Graphics::~Graphics()
 {
-	// InputHandler::instance()->unlisten(this);
-
 	if (_d3d != nullptr) {
 		delete _d3d;
 		_d3d = nullptr;
@@ -71,7 +65,7 @@ void Graphics::renderMesh(AMesh* mesh)
 	XMFLOAT4X4 wvpStore{};
 	XMStoreFloat4x4(&wvpStore, _camera->getWorldViewProjectionMatrix(&worldMatrix));
 
-	mesh->getShader()->setWorldViewProjectionMatrix(worldStore, wvpStore);
+	mesh->getShader()->setWorldViewProjectionMatrix(worldStore, wvpStore, _camera->getPosition());
 	mesh->getShader()->render(_d3d->getDeviceContext(), mesh->getIndexCount());
 }
 
@@ -116,4 +110,5 @@ void Graphics::clear()
 	}
 
 	_meshes.clear();
+	_lights.clear();
 }

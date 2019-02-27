@@ -15,10 +15,11 @@ public:
 	virtual void init(ID3D11Device* device);
 	void render(ID3D11DeviceContext* deviceContext, USHORT indexCount);
 
-	void setWorldViewProjectionMatrix(XMFLOAT4X4 world, XMFLOAT4X4 wvp)
+	void setWorldViewProjectionMatrix(XMFLOAT4X4 world, XMFLOAT4X4 wvp, XMFLOAT3 cameraPosition)
 	{
 		_matrixBuffer.worldMatrix = world;
 		_matrixBuffer.worldViewProjectionMatrix = wvp;
+		_matrixBuffer.cameraPosition = XMFLOAT4(cameraPosition.x, cameraPosition.y, cameraPosition.z, 1.0f);
 	}
 
 protected:
@@ -44,6 +45,7 @@ protected:
 	{
 		XMFLOAT4X4 worldViewProjectionMatrix;
 		XMFLOAT4X4 worldMatrix;
+		XMFLOAT4 cameraPosition; // put here for convenience
 	};
 
 	MatrixBuffer _matrixBuffer = {};

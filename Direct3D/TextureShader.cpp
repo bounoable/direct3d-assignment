@@ -44,7 +44,7 @@ void TextureShader::createInputLayout(ID3D11Device* device, ID3DBlob* blob)
 
 	// UV
 	desc[4].SemanticName = "TEXCOORD";
-	desc[4].Format = DXGI_FORMAT_R32G32_FLOAT;
+	desc[4].Format = DXGI_FORMAT_R32G32B32_FLOAT;
 	desc[4].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
 
 	if (FAILED(device->CreateInputLayout(desc, 5, blob->GetBufferPointer(), blob->GetBufferSize(), &_inputLayout))) {

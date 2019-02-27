@@ -67,9 +67,9 @@ void AMesh::calculateTangentAndBinormal(VertexPNT3 &v1, VertexPNT3 &v2, VertexPN
 	XMStoreFloat3(&p2, XMLoadFloat3(&v3.position) - XMLoadFloat3(&v1.position));
 
 	// calculate triangle vectors in texture space
-	XMFLOAT2 t1, t2;
-	XMStoreFloat2(&t1, XMLoadFloat2(&v2.uv) - XMLoadFloat2(&v1.uv));
-	XMStoreFloat2(&t2, XMLoadFloat2(&v3.uv) - XMLoadFloat2(&v1.uv));
+	XMFLOAT3 t1, t2;
+	XMStoreFloat3(&t1, XMLoadFloat3(&v2.uv) - XMLoadFloat3(&v1.uv));
+	XMStoreFloat3(&t2, XMLoadFloat3(&v3.uv) - XMLoadFloat3(&v1.uv));
 
 	// calculate denominator for tangent/binormal cross products
 	float denominator = 1.0f / (t1.x * t2.y - t2.x * t1.y);

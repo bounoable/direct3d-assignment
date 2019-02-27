@@ -39,9 +39,12 @@ private:
 	void createColorCube();
 	void createTextureCube();
 	void createLightTextureCube();
-	void createPointLightTextureCube();
-	void createSpotLightTextureCube();
+	void createLight();
+	Light createPointLight();
+	Light createSpotLight();
 	void createGround();
 	void clear();
+
+	void setMeshPosition(MeshData& meshData);
 };
 

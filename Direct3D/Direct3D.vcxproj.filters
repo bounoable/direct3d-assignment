@@ -63,12 +63,6 @@
     <ClCompile Include="Skybox.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="PointLightTextureShader.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
-    <ClCompile Include="SpotLightTextureShader.cpp">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
     <ClCompile Include="Application.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
@@ -131,13 +125,10 @@
     <ClInclude Include="Skybox.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="PointLightTextureShader.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="SpotLightTextureShader.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
     <ClInclude Include="Application.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="Light.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>
@@ -158,18 +149,6 @@
       <Filter>Ressourcendateien</Filter>
     </FxCompile>
     <FxCompile Include="LightTexturePixelShader.hlsl">
-      <Filter>Ressourcendateien</Filter>
-    </FxCompile>
-    <FxCompile Include="PointLightTexturePixelShader.hlsl">
-      <Filter>Ressourcendateien</Filter>
-    </FxCompile>
-    <FxCompile Include="PointLightTextureVertexShader.hlsl">
-      <Filter>Ressourcendateien</Filter>
-    </FxCompile>
-    <FxCompile Include="SpotLightTexturePixelShader.hlsl">
-      <Filter>Ressourcendateien</Filter>
-    </FxCompile>
-    <FxCompile Include="SpotLightTextureVertexShader.hlsl">
       <Filter>Ressourcendateien</Filter>
     </FxCompile>
   </ItemGroup>

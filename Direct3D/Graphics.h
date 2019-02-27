@@ -10,6 +10,8 @@
 #include <unordered_set>
 #include "Skybox.h"
 #include <chrono>
+#include "Light.h"
+#include "LightTextureShader.h"
 
 class Graphics
 {
@@ -62,6 +64,42 @@ public:
 	void addMesh(AMesh* mesh)
 	{
 		_meshes.insert(mesh);
+
+		LightTextureShader* shader = dynamic_cast<LightTextureShader*>(mesh->getShader());
+
+		if (shader != nullptr) {
+			applyLights(shader);
+		}
+	}
+
+	void applyLights(LightTextureShader* shader)
+	{
+		for (const auto& light : _lights) {
+			shader->addLight(light);
+		}
+	}
+
+	std::unordered_set<AMesh*> getMeshes()
+	{
+		return _meshes;
+	}
+
+	void addLight(Light light)
+	{
+		_lights.push_back(light);
+
+		for (const auto& mesh : getMeshes()) {
+			LightTextureShader* shader = dynamic_cast<LightTextureShader*>(mesh->getShader());
+
+			if (shader != nullptr) {
+				shader->addLight(light);
+			}
+		}
+	}
+
+	std::vector<Light> getLights()
+	{
+		return _lights;
 	}
 
 	void rotateMeshesYClockwise(float amount)
@@ -99,6 +137,8 @@ protected:
 private:
 	std::unordered_set<AMesh*> _meshes;
 	Skybox* _skybox;
+
+	std::vector<Light> _lights;
 
 	Direct3D* _d3d = nullptr;
 	Camera* _camera = nullptr;

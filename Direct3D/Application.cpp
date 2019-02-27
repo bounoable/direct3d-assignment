@@ -11,8 +11,6 @@
 #include "ColorShader.h"
 #include "TextureShader.h"
 #include "LightTextureShader.h"
-#include "PointLightTextureShader.h"
-#include "SpotLightTextureShader.h"
 
 
 const char* Application::skyboxTextureNames[]{
@@ -23,7 +21,6 @@ const char* Application::skyboxTextureNames[]{
 };
 
 std::default_random_engine Application::rand(std::chrono::system_clock::now().time_since_epoch().count());
-
 
 Application::Application()
 {
@@ -74,12 +71,6 @@ void Application::notifyInput(char character)
 		case 0x33:
 			createLightTextureCube();
 			break;
-		case 0x34:
-			createPointLightTextureCube();
-			break;
-		case 0x35:
-			createSpotLightTextureCube();
-			break;
 		case 0x4E:
 			gfx->scaleMeshes(1.0f - 1.0f * deltaTime);
 			break;
@@ -124,6 +115,9 @@ void Application::notifyInput(char character)
 			break;
 		case 0x53:
 			gfx->rotateMeshesXClockwise(5.0f * deltaTime);
+			break;
+		case 0x4C:
+			createLight();
 			break;
 	}
 }
@@ -175,6 +169,8 @@ void Application::createColorCube()
 	MeshData meshData{};
 	meshData.scale = XMFLOAT3(0.5f, 0.5f, 0.5f);
 
+	setMeshPosition(meshData);
+
 	ColorShader* shader = new ColorShader();
 	shader->init(device);
 
@@ -191,6 +187,8 @@ void Application::createTextureCube()
 	MeshData meshData {};
 	meshData.scale = XMFLOAT3(0.5f, 0.5f, 0.5f);
 
+	setMeshPosition(meshData);
+
 	Texture* texture = new Texture("stone.png");
 	texture->init(device);
 
@@ -203,6 +201,7 @@ void Application::createTextureCube()
 	getGraphics()->addMesh(mesh);
 }
 
+
 void Application::createLightTextureCube()
 {
 	ID3D11Device* device = getDevice();
@@ -210,60 +209,113 @@ void Application::createLightTextureCube()
 	MeshData meshData{};
 	meshData.scale = XMFLOAT3(0.5f, 0.5f, 0.5f);
 
+	setMeshPosition(meshData);
+
 	Texture* texture = new Texture("stone.png");
 	texture->init(device);
 
 	LightTextureShader* shader = new LightTextureShader(texture);
-	shader->setLightProperties(XMFLOAT3(0.0f, 0.0f, 1.0f), 1.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f));
+
 	shader->init(device);
 
 	TextureCube* mesh = new TextureCube(shader, meshData);
+	mesh->makeTransparent();
 	mesh->init(device);
 
 	getGraphics()->addMesh(mesh);
 }
 
-void Application::createPointLightTextureCube()
+void Application::setMeshPosition(MeshData& meshData)
 {
-	ID3D11Device* device = getDevice();
+	Camera* camera = getGraphics()->getCamera();
 
-	MeshData meshData{};
-	meshData.scale = XMFLOAT3(0.5f, 0.5f, 0.5f);
-
-	Texture* texture = new Texture("stone.png");
-	texture->init(device);
-
-	PointLightTextureShader* shader = new PointLightTextureShader(texture);
-
-	shader->setLightProperties(XMFLOAT3(0.0f, 3.0f, -2.5f), 3.5f, 1.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f));
-	shader->init(device);
-
-	TextureCube* mesh = new TextureCube(shader, meshData);
-	mesh->init(device);
-
-	getGraphics()->addMesh(mesh);
+	if (camera != nullptr) {
+		meshData.position = camera->getPosition();
+		meshData.position.z += 2.0f;
+	}
 }
 
-void Application::createSpotLightTextureCube()
+void Application::createLight()
 {
-	ID3D11Device* device = getDevice();
+	static std::default_random_engine e;
+	static std::uniform_int_distribution<int> d(0, 1);
 
-	MeshData meshData{};
-	meshData.scale = XMFLOAT3(1.0f, 1.0f, 1.0f);
+	Light light {};
 
-	Texture* texture = new Texture("stone.png");
-	texture->init(device);
+	switch (d(e))
+	{
+	case 0:
+		light = createPointLight();
+		break;
+	case 1:
+		light = createPointLight();
+		break;
+	default:
+		break;
+	}
 
-	SpotLightTextureShader* shader = new SpotLightTextureShader(texture);
+	getGraphics()->addLight(light);
 
-	shader->setLightProperties(XMFLOAT3(0.0f, 0.0f, -3.0f), 10.5f, 1.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), XMFLOAT3(0.0f, 0.0f, 1.0f), 60.0f);
-	shader->init(device);
+	std::wstringstream ss;
 
-	TextureCube* mesh = new TextureCube(shader, meshData);
-	mesh->init(device);
+	ss << getGraphics()->getLights().size();
 
-	getGraphics()->addMesh(mesh);
+	OutputDebugString(ss.str().c_str());
 }
+
+Light Application::createPointLight()
+{
+	static std::default_random_engine e;
+	e.seed(std::chrono::system_clock::now().time_since_epoch().count());
+
+	XMFLOAT3 minPos(0.0f, 0.0f, 0.0f);
+	XMFLOAT3 maxPos(0.0f, 0.0f, 0.0f);
+
+	for (const auto& mesh : getGraphics()->getMeshes()) {
+		if (mesh->getPosition().x < minPos.x) {
+			minPos.x = mesh->getPosition().x;
+		}
+
+		if (mesh->getPosition().y < minPos.y) {
+			minPos.y = mesh->getPosition().y;
+		}
+
+		if (mesh->getPosition().z < minPos.z) {
+			minPos.z = mesh->getPosition().z;
+		}
+
+		if (mesh->getPosition().x > maxPos.x) {
+			maxPos.x = mesh->getPosition().x;
+		}
+
+		if (mesh->getPosition().y > maxPos.y) {
+			maxPos.y = mesh->getPosition().y;
+		}
+
+		if (mesh->getPosition().z > maxPos.z) {
+			maxPos.z = mesh->getPosition().z;
+		}
+	}
+
+	std::uniform_real_distribution<FLOAT> dx(minPos.x - 1.0f, maxPos.x + 1.0f);
+	std::uniform_real_distribution<FLOAT> dy(minPos.y - 1.0f, maxPos.y + 1.0f);
+	std::uniform_real_distribution<FLOAT> dz(minPos.z - 1.0f, maxPos.z + 1.0f);
+
+	std::uniform_real_distribution<FLOAT> di(0.2f, 1.2f);
+	std::uniform_real_distribution<FLOAT> dr(1.0f, 5.0f);
+
+	std::uniform_real_distribution<FLOAT> dc(0.0f, 1.0f);
+
+	Light light = Light::point(di(e), dr(e), XMFLOAT3(dx(e), dy(e), dz(e)), XMFLOAT4(dc(e), dc(e), dc(e), dc(e)));
+
+	return light;
+}
+
+Light Application::createSpotLight()
+{
+	return Light();
+}
+
 
 void Application::createGround()
 {
