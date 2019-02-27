@@ -1,0 +1,8 @@
+WASD: Cube entlang der Weltachse drehen
+PFEILTASTEN: Kamera entlang der Weltachse bewegen
+
+N: Cube verkleinern
+M: Cube vergrößern
+
+Num 1: Neuen Cube mit Color Shader erstellen
+Num 2: Neuen Cube mit Texture Shader erstellen
