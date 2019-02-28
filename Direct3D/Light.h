@@ -10,6 +10,7 @@ enum LightType
 	Directional = 1,
 	Spot = 2,
 	Point = 3,
+	Ambient = 4,
 };
 
 struct Light
@@ -23,6 +24,17 @@ struct Light
 	XMFLOAT3 direction = XMFLOAT3(0.0f, 0.0f, 0.0f);
 	FLOAT padding2 {};
 	XMFLOAT4 color = XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f);
+
+	static Light ambient(
+		XMFLOAT4 color
+	) {
+		Light light {};
+		light.type = LightType::Ambient;
+		light.intensity = 1.0f;
+		light.color = color;
+
+		return light;
+	}
 
 	static Light directional(
 		FLOAT intensity,

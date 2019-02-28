@@ -3,6 +3,7 @@
 #include <DirectXMath.h>
 #include "Vertex.h"
 #include "AShader.h"
+#include "LightTextureShader.h"
 
 using namespace DirectX;
 
@@ -11,6 +12,7 @@ struct MeshData
 	XMFLOAT3 position = XMFLOAT3(0.0f, 0.0f, 0.0f);
 	XMFLOAT3 rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
 	XMFLOAT3 scale = XMFLOAT3(1.0f, 1.0f, 1.0f);
+	XMFLOAT4 emission = XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f);
 };
 
 class AMesh
@@ -84,6 +86,17 @@ public:
 	void setScale(XMFLOAT3 scale)
 	{
 		_data.scale = scale;
+	}
+
+	void setEmission(XMFLOAT4 color)
+	{
+		_data.emission = color;
+
+		LightTextureShader* shader = dynamic_cast<LightTextureShader*>(getShader());
+
+		if (shader != nullptr) {
+			shader->setEmission(color);
+		}
 	}
 
 protected:

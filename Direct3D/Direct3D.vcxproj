@@ -131,6 +131,8 @@
     <ClCompile Include="InputHandler.cpp" />
     <ClCompile Include="LightTextureShader.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="APreset.cpp" />
+    <ClCompile Include="PresetOne.cpp" />
     <ClCompile Include="Skybox.cpp" />
     <ClCompile Include="System.cpp" />
     <ClCompile Include="Texture.cpp" />
@@ -152,12 +154,15 @@
     <ClInclude Include="Light.h" />
     <ClInclude Include="LightTextureShader.h" />
     <ClInclude Include="InputListener.h" />
+    <ClInclude Include="APreset.h" />
+    <ClInclude Include="PresetOne.h" />
     <ClInclude Include="Skybox.h" />
     <ClInclude Include="stb_image.h" />
     <ClInclude Include="System.h" />
     <ClInclude Include="Texture.h" />
     <ClInclude Include="TextureCube.h" />
     <ClInclude Include="TextureShader.h" />
+    <ClInclude Include="UpdateTarget.h" />
     <ClInclude Include="Vertex.h" />
   </ItemGroup>
   <ItemGroup>

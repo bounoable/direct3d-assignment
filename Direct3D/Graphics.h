@@ -1,26 +1,78 @@
 #pragma once
 #include <Windows.h>
 #include "Direct3D.h"
-#include "AMesh.h"
 #include "AShader.h"
 #include "Camera.h"
-#include <map>
-#include <random>
 #include <string>
-#include <unordered_set>
 #include "Skybox.h"
-#include <chrono>
-#include "Light.h"
-#include "LightTextureShader.h"
+#include "UpdateTarget.h"
 
-class Graphics
+
+struct LightDistanceComparer
+{
+	XMFLOAT3 position {};
+
+	LightDistanceComparer(XMFLOAT3 pos)
+	{
+		position = pos;
+	}
+
+	bool operator()(Light& lhs, Light& rhs)
+	{
+		if (
+			(lhs.type == LightType::Ambient || lhs.type == LightType::Directional) &&
+			(rhs.type == LightType::Ambient || rhs.type == LightType::Directional)
+		) {
+			if (lhs.type == LightType::Ambient) {
+				return true;
+			}
+
+			if (rhs.type == LightType::Ambient) {
+				return false;
+			}
+
+			if (lhs.type == LightType::Directional) {
+				return true;
+			}
+
+			return false;
+		}
+
+		XMFLOAT3 distanceVecA = XMFLOAT3(
+			position.x - lhs.position.x,
+			position.y - lhs.position.y,
+			position.z - lhs.position.z
+		);
+
+		XMFLOAT3 distanceVecB = XMFLOAT3(
+			position.x - rhs.position.x,
+			position.y - rhs.position.y,
+			position.z - rhs.position.z
+		);
+
+		float distanceA = sqrtf(
+			distanceVecA.x * distanceVecA.x +
+			distanceVecA.y + distanceVecA.y +
+			distanceVecA.z * distanceVecA.z
+		);
+
+		float distanceB = sqrtf(
+			distanceVecB.x * distanceVecB.x +
+			distanceVecB.y + distanceVecB.y +
+			distanceVecB.z * distanceVecB.z
+		);
+
+		return distanceA <= distanceB;
+	}
+};
+
+class Graphics: public UpdateTarget
 {
 public:
 	Graphics(HWND hWnd, UINT screenWidth, UINT screenHeight);
 	~Graphics();
 
 	void update(FLOAT dt);
-	void render();
 	void clear();
 
 	Direct3D* getDirect3D()
@@ -49,6 +101,11 @@ public:
 			delete _skybox;
 		}
 
+		if (_camera != nullptr) {
+			setSkyboxPosition(_camera->getPosition());
+		}
+
+
 		_skybox = skybox;
 	}
 
@@ -63,36 +120,32 @@ public:
 
 	void addMesh(AMesh* mesh)
 	{
-		_meshes.insert(mesh);
+		_meshes.push_back(mesh);
 
 		LightTextureShader* shader = dynamic_cast<LightTextureShader*>(mesh->getShader());
 
 		if (shader != nullptr) {
-			applyLights(shader);
+			applyLights(mesh);
 		}
 	}
 
-	void applyLights(LightTextureShader* shader)
-	{
-		for (const auto& light : _lights) {
-			shader->addLight(light);
-		}
-	}
-
-	std::unordered_set<AMesh*> getMeshes()
+	std::vector<AMesh*> getMeshes()
 	{
 		return _meshes;
 	}
 
 	void addLight(Light light)
 	{
+		cleanupLights();
+
 		_lights.push_back(light);
 
 		for (const auto& mesh : getMeshes()) {
 			LightTextureShader* shader = dynamic_cast<LightTextureShader*>(mesh->getShader());
 
 			if (shader != nullptr) {
-				shader->addLight(light);
+				shader->clearLights();
+				applyLights(mesh);
 			}
 		}
 	}
@@ -130,12 +183,28 @@ public:
 
 	void scaleMeshes(float scale);
 
+	void clearLights()
+	{
+		_lights.clear();
+
+		for (const auto& mesh : _meshes) {
+			LightTextureShader* shader = dynamic_cast<LightTextureShader*>(mesh->getShader());
+
+			if (shader != nullptr) {
+				shader->clearLights();
+			}
+		}
+	}
+
 protected:
 	void rotateSkybox();
 	void renderMesh(AMesh* mesh);
 
+	void applyLights(AMesh* mesh);
+	void cleanupLights();
+
 private:
-	std::unordered_set<AMesh*> _meshes;
+	std::vector<AMesh*> _meshes;
 	Skybox* _skybox;
 
 	std::vector<Light> _lights;

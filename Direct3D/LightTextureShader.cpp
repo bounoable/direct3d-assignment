@@ -40,7 +40,7 @@ void LightTextureShader::setShaderParameters(ID3D11DeviceContext* deviceContext)
 {
 	TextureShader::setShaderParameters(deviceContext);
 
-	D3D11_MAPPED_SUBRESOURCE buffer = {};
+	D3D11_MAPPED_SUBRESOURCE buffer {};
 
 	if (FAILED(deviceContext->Map(_d3dLightBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &buffer))) return;
 

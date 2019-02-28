@@ -27,7 +27,7 @@ LRESULT CALLBACK WndProc(
 
 		ss << wParam;
 
-		OutputDebugString(ss.str().c_str());
+		// OutputDebugString(ss.str().c_str());
 
 		InputHandler::instance()->handle(wParam);
 		return DefWindowProc(hWnd, msg, wParam, lParam);
@@ -47,6 +47,7 @@ System::System(UINT width, UINT height)
 	createWindow();
 
 	_gfx = new Graphics(_hWnd, _width, _height);
+	addUpdateTarget(_gfx);
 }
 
 
@@ -94,8 +95,9 @@ void System::run()
 			time = 0.0f;
 		}
 
-		_gfx->update(_deltaTime);
-		_gfx->render();
+		for (const auto& target : _updateTargets) {
+			target->update(_deltaTime);
+		}
 	}
 }
 

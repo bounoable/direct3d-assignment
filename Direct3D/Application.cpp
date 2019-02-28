@@ -11,6 +11,7 @@
 #include "ColorShader.h"
 #include "TextureShader.h"
 #include "LightTextureShader.h"
+#include "PresetOne.h"
 
 
 const char* Application::skyboxTextureNames[]{
@@ -38,12 +39,20 @@ void Application::start()
 
 	try {
 		_system = new System(1280, 720);
+		_system->addUpdateTarget(this);
 		_system->run();
 	} catch (std::exception* e) {
 		OutputDebugString(toDebugString(e->what()));
 	}
 
 	InputHandler::instance()->unlisten(this);
+}
+
+void Application::update(FLOAT deltaTime)
+{
+	if (_currentPreset != nullptr) {
+		_currentPreset->update(deltaTime);
+	}
 }
 
 void Application::notifyInput(char character)
@@ -66,10 +75,13 @@ void Application::notifyInput(char character)
 			createColorCube();
 			break;
 		case 0x32:
-			createTextureCube();
+			createLightTextureCube();
 			break;
 		case 0x33:
-			createLightTextureCube();
+			createLightTextureCube(true);
+			break;
+		case 0x34:
+			runPreset<PresetOne>();
 			break;
 		case 0x4E:
 			gfx->scaleMeshes(1.0f - 1.0f * deltaTime);
@@ -119,6 +131,9 @@ void Application::notifyInput(char character)
 		case 0x4C:
 			createLight();
 			break;
+		case 0x20:
+			createBaseLights();
+			break;
 	}
 }
 
@@ -127,19 +142,22 @@ void Application::clear()
 	getGraphics()->clear();
 }
 
-void Application::createSkybox()
+void Application::createSkybox(int index)
 {
 	MeshData meshData{};
 	meshData.scale = XMFLOAT3(5.0f, 5.0f, 5.0f);
 
 	static std::uniform_int_distribution<int> randInt(0, 3);
 
-	int index = -1;
 	const char* textureName = nullptr;
 
 	Skybox* currentSkybox = _system->getGraphics()->getSkybox();
 
-	while (index == -1) {
+	if (index >= 0) {
+		textureName = Application::skyboxTextureNames[index];
+	}
+
+	while (index < 0) {
 		index = randInt(rand);
 		textureName = Application::skyboxTextureNames[index];
 
@@ -202,7 +220,7 @@ void Application::createTextureCube()
 }
 
 
-void Application::createLightTextureCube()
+void Application::createLightTextureCube(bool transparent)
 {
 	ID3D11Device* device = getDevice();
 
@@ -219,7 +237,16 @@ void Application::createLightTextureCube()
 	shader->init(device);
 
 	TextureCube* mesh = new TextureCube(shader, meshData);
-	mesh->makeTransparent();
+
+	std::uniform_real_distribution<FLOAT> de(0.0f, 0.05f);
+
+	XMFLOAT4 emission(de(rand), de(rand), de(rand), 0.05f);
+	mesh->setEmission(emission);
+
+	if (transparent) {
+		mesh->makeTransparent();
+	}
+
 	mesh->init(device);
 
 	getGraphics()->addMesh(mesh);
@@ -237,37 +264,47 @@ void Application::setMeshPosition(MeshData& meshData)
 
 void Application::createLight()
 {
-	static std::default_random_engine e;
-	static std::uniform_int_distribution<int> d(0, 1);
+	// rand.seed(std::chrono::system_clock::now().time_since_epoch().count());
 
-	Light light {};
+	static std::uniform_int_distribution<int> d(2, 3);
 
-	switch (d(e))
+	LightType type = static_cast<LightType>(d(rand));
+
+	std::wstringstream ss;
+
+	ss << (int)type;
+
+	OutputDebugString(ss.str().c_str());
+
+	switch (type)
 	{
-	case 0:
-		light = createPointLight();
+	case LightType::Spot:
+		createSpotLight();
 		break;
-	case 1:
-		light = createPointLight();
+	case LightType::Point:
+		createPointLight();
 		break;
 	default:
 		break;
 	}
 
-	getGraphics()->addLight(light);
-
-	std::wstringstream ss;
+	/*std::wstringstream ss;
 
 	ss << getGraphics()->getLights().size();
 
-	OutputDebugString(ss.str().c_str());
+	OutputDebugString(ss.str().c_str());*/
 }
 
-Light Application::createPointLight()
+void Application::createPointLight()
 {
-	static std::default_random_engine e;
-	e.seed(std::chrono::system_clock::now().time_since_epoch().count());
+	std::uniform_real_distribution<FLOAT> di(0.5f, 1.3f);
+	std::uniform_real_distribution<FLOAT> dr(0.5f, 4.5f);
 
+	getGraphics()->addLight(Light::point(di(rand), dr(rand), randomLightPosition(), randomColor()));
+}
+
+XMFLOAT3 Application::randomLightPosition()
+{
 	XMFLOAT3 minPos(0.0f, 0.0f, 0.0f);
 	XMFLOAT3 maxPos(0.0f, 0.0f, 0.0f);
 
@@ -297,23 +334,60 @@ Light Application::createPointLight()
 		}
 	}
 
-	std::uniform_real_distribution<FLOAT> dx(minPos.x - 1.0f, maxPos.x + 1.0f);
-	std::uniform_real_distribution<FLOAT> dy(minPos.y - 1.0f, maxPos.y + 1.0f);
-	std::uniform_real_distribution<FLOAT> dz(minPos.z - 1.0f, maxPos.z + 1.0f);
+	std::uniform_real_distribution<FLOAT> dx(minPos.x - 1.5f, maxPos.x + 1.5f);
+	std::uniform_real_distribution<FLOAT> dy(minPos.y - 1.5f, maxPos.y + 1.5f);
+	std::uniform_real_distribution<FLOAT> dz(minPos.z - 1.5f, maxPos.z + 1.5f);
 
-	std::uniform_real_distribution<FLOAT> di(0.2f, 1.2f);
-	std::uniform_real_distribution<FLOAT> dr(1.0f, 5.0f);
-
-	std::uniform_real_distribution<FLOAT> dc(0.0f, 1.0f);
-
-	Light light = Light::point(di(e), dr(e), XMFLOAT3(dx(e), dy(e), dz(e)), XMFLOAT4(dc(e), dc(e), dc(e), dc(e)));
-
-	return light;
+	return XMFLOAT3(dx(rand), dy(rand), dz(rand));
 }
 
-Light Application::createSpotLight()
+XMFLOAT4 Application::randomColor(bool noTransparency)
 {
-	return Light();
+	std::uniform_real_distribution<FLOAT> d(0.0f, 1.0f);
+
+	return XMFLOAT4(d(rand), d(rand), d(rand), noTransparency ? 1.0f : d(rand));
+}
+
+void Application::createSpotLight()
+{
+	std::vector<AMesh*> meshes = getGraphics()->getMeshes();
+
+	std::uniform_real_distribution<FLOAT> di(0.25f, 1.25f);
+	std::uniform_real_distribution<FLOAT> dr(1.5f, 10.0f);
+	std::uniform_real_distribution<FLOAT> da(10.0f, 70.0f);
+	std::uniform_int_distribution<int> dm(0, meshes.size() - 1);
+
+	XMFLOAT3 position = randomLightPosition();
+	XMFLOAT3 focus = meshes[dm(rand)]->getPosition();
+	XMFLOAT3 direction = XMFLOAT3(focus.x - position.x, focus.y - position.y, focus.z - position.z);
+
+	getGraphics()->addLight(Light::spot(di(rand), dr(rand), da(rand), position, direction, randomColor()));
+}
+
+void Application::createDirectionalLight()
+{
+	std::uniform_real_distribution<FLOAT> di(0.1f, 0.5f);
+	std::uniform_real_distribution<FLOAT> dd(-1.0f, 1.0f);
+
+	XMFLOAT3 direction(dd(rand), dd(rand), dd(rand));
+
+	getGraphics()->addLight(Light::directional(di(rand), direction, randomColor()));
+}
+
+void Application::createAmbientLight()
+{
+	std::uniform_real_distribution<FLOAT> dc(0.05f, 0.15f);
+
+	XMFLOAT4 color(dc(rand), dc(rand), dc(rand), 1.0f);
+
+	getGraphics()->addLight(Light::ambient(color));
+}
+
+void Application::createBaseLights()
+{
+	getGraphics()->clearLights();
+	createDirectionalLight();
+	createAmbientLight();
 }
 
 

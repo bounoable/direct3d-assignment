@@ -16,6 +16,7 @@ struct Light
 
 cbuffer LightBuffer
 {
+    float4 emission;
     Light lights[12];
 };
 
@@ -135,6 +136,7 @@ float4 main(PixelInput IN) : SV_TARGET
 
     float4 diffuseColor = 0;
     float4 specularColor = 0;
+    float4 ambientColor = 0;
 
     for (int x = 0; x < 12; x++)
     {
@@ -153,11 +155,14 @@ float4 main(PixelInput IN) : SV_TARGET
                 diffuseColor += calculatePointDiffuse(light, IN);
                 specularColor += calculatePointSpecular(light, IN);
                 break;
+            case 4:
+                ambientColor += float4(light.color.x, light.color.y, light.color.z, light.intensity);
+                break;
             default:
                 break;
         }
     }
 
-    // tex * (ambient + diffuse) + specular + emission
-    return saturate(saturate(tex * saturate(float4(0.05f, 0.05f, 0.05f, 1.0f) + diffuseColor)) + specularColor + float4(0.0f, 0.0f, 0.0f, 1.0f)) * IN.uv.z;
+    // (tex * (ambient + diffuse) + specular + emission) * opacity
+    return saturate(saturate(tex * saturate(ambientColor + diffuseColor)) + specularColor + emission) * IN.uv.z;
 }

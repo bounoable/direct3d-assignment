@@ -4,14 +4,18 @@
 #include <random>
 #include "Direct3D.h"
 #include "Graphics.h"
+#include "UpdateTarget.h"
 
-class Application : InputListener
+class APreset;
+
+class Application : InputListener, UpdateTarget
 {
 public:
 	Application();
 	~Application();
 
 	void start();
+	void update(FLOAT deltaTime);
 	void notifyInput(char character);
 
 	ID3D11Device* getDevice()
@@ -29,21 +33,42 @@ public:
 		return _system->getGraphics();
 	}
 
+	void createSkybox(int index = -1);
+	void createColorCube();
+	void createTextureCube();
+	void createLightTextureCube(bool transparent = false);
+	void createLight();
+	void createPointLight();
+	void createSpotLight();
+	void createDirectionalLight();
+	void createAmbientLight();
+	void createBaseLights();
+	void createGround();
+	void clear();
+
+	XMFLOAT3 randomLightPosition();
+	XMFLOAT4 randomColor(bool noTransparency = false);
+
+	template<typename Preset>
+	void runPreset()
+	{
+		if (_currentPreset != nullptr) {
+			delete _currentPreset;
+			_currentPreset = nullptr;
+		}
+
+		Preset* preset = new Preset(this);
+
+		preset->apply();
+		_currentPreset = preset;
+	}
+
 private:
 	static const char* skyboxTextureNames[];
 	static std::default_random_engine rand;
 
 	System* _system = nullptr;
-
-	void createSkybox();
-	void createColorCube();
-	void createTextureCube();
-	void createLightTextureCube();
-	void createLight();
-	Light createPointLight();
-	Light createSpotLight();
-	void createGround();
-	void clear();
+	APreset* _currentPreset = nullptr;
 
 	void setMeshPosition(MeshData& meshData);
 };

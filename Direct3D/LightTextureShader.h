@@ -22,6 +22,25 @@ public:
 		_lightCount++;
 	}
 
+	void clearLights()
+	{
+		for (Light& light : _lightBuffer.lights) {
+			light = Light();
+		}
+
+		_lightCount = 0;
+	}
+
+	unsigned int getLightCount()
+	{
+		return _lightCount;
+	}
+
+	void setEmission(XMFLOAT4 emission)
+	{
+		_lightBuffer.emission = emission;
+	}
+
 protected:
 	void createLightBuffer(ID3D11Device* device);
 	void setShaderParameters(ID3D11DeviceContext* deviceContext);
@@ -30,6 +49,7 @@ protected:
 
 	struct LightBuffer
 	{
+		XMFLOAT4 emission = XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f);
 		Light lights[12];
 	};
 

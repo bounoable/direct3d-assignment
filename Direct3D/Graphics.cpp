@@ -6,6 +6,7 @@
 #include "TextureShader.h"
 #include "LightTextureShader.h"
 #include "Camera.h"
+#include <algorithm>
 
 using namespace std;
 using namespace DirectX;
@@ -38,11 +39,8 @@ void Graphics::update(FLOAT dt)
 	_deltaTime = dt;
 
 	rotateSkybox();
-}
 
-void Graphics::render()
-{
-	_d3d->beginScene(0.1f, 0.0f, 0.1f);
+	_d3d->beginScene(0.0f, 0.0f, 0.0f);
 
 	if (_skybox != nullptr) {
 		renderMesh(_skybox);
@@ -111,4 +109,58 @@ void Graphics::clear()
 
 	_meshes.clear();
 	_lights.clear();
+}
+
+void Graphics::applyLights(AMesh* mesh)
+{
+	LightTextureShader* shader = dynamic_cast<LightTextureShader*>(mesh->getShader());
+
+	if (shader == nullptr) {
+		return;
+	}
+
+	if (shader->getLightCount() >= 12) {
+		return;
+	}
+
+	std::vector<Light> lights;
+
+	for (auto& light : _lights) {
+		lights.push_back(light);
+	}
+
+	auto cmp = LightDistanceComparer(mesh->getPosition());
+	std::sort(lights.begin(), lights.end(), cmp);
+
+	for (const auto& light : lights) {
+		shader->addLight(light);
+	}
+}
+
+void Graphics::cleanupLights()
+{
+	// Clean up when more than 30 lights in the scene,
+	// but resize the lights to 20 so it doesn't run with every new light
+
+	if (_lights.size() <= 30) {
+		return;
+	}
+
+	// Remove the lights that are the furthest away from the objects
+	XMFLOAT3 avg(0.0f, 0.0f, 0.0f);
+
+	for (const auto& mesh : _meshes) {
+		avg.x += mesh->getPosition().x;
+		avg.y += mesh->getPosition().y;
+		avg.z += mesh->getPosition().z;
+	}
+
+	avg.x /= _meshes.size();
+	avg.y /= _meshes.size();
+	avg.z /= _meshes.size();
+
+	auto cmp = LightDistanceComparer(avg);
+
+	std::sort(_lights.begin(), _lights.end(), cmp);
+	_lights.resize(20);
 }
