@@ -12,6 +12,8 @@
 #include "TextureShader.h"
 #include "LightTextureShader.h"
 #include "PresetOne.h"
+#include "TextureCube.h"
+#include "Pyramid.h"
 
 
 const char* Application::skyboxTextureNames[]{
@@ -75,12 +77,18 @@ void Application::notifyInput(char character)
 			createColorCube();
 			break;
 		case 0x32:
-			createLightTextureCube();
+			createMesh<TextureCube>();
 			break;
 		case 0x33:
-			createLightTextureCube(true);
+			createMesh<TextureCube>(true);
 			break;
 		case 0x34:
+			createMesh<Pyramid>();
+			break;
+		case 0x35:
+			createMesh<Pyramid>(true);
+			break;
+		case 0x36:
 			runPreset<PresetOne>();
 			break;
 		case 0x4E:
@@ -198,29 +206,8 @@ void Application::createColorCube()
 	getGraphics()->addMesh(mesh);
 }
 
-void Application::createTextureCube()
-{
-	ID3D11Device* device = getDevice();
-
-	MeshData meshData {};
-	meshData.scale = XMFLOAT3(0.5f, 0.5f, 0.5f);
-
-	setMeshPosition(meshData);
-
-	Texture* texture = new Texture("stone.png");
-	texture->init(device);
-
-	TextureShader* shader = new TextureShader(texture);
-	shader->init(device);
-
-	TextureCube* mesh = new TextureCube(shader, meshData);
-	mesh->init(device);
-
-	getGraphics()->addMesh(mesh);
-}
-
-
-void Application::createLightTextureCube(bool transparent)
+template<typename Mesh>
+void Application::createMesh(bool transparent)
 {
 	ID3D11Device* device = getDevice();
 
@@ -236,7 +223,7 @@ void Application::createLightTextureCube(bool transparent)
 
 	shader->init(device);
 
-	TextureCube* mesh = new TextureCube(shader, meshData);
+	Mesh* mesh = new Mesh(shader, meshData);
 
 	std::uniform_real_distribution<FLOAT> de(0.0f, 0.05f);
 

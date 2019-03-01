@@ -88,6 +88,10 @@ void Graphics::createCamera(UINT screenWidth, UINT screenHeight)
 		screenWidth,
 		screenHeight
 	);
+
+	if (_skybox != nullptr) {
+		_skybox->setPosition(_camera->getPosition());
+	}
 }
 
 void Graphics::rotateSkybox()

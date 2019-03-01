@@ -133,6 +133,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="APreset.cpp" />
     <ClCompile Include="PresetOne.cpp" />
+    <ClCompile Include="Pyramid.cpp" />
     <ClCompile Include="Skybox.cpp" />
     <ClCompile Include="System.cpp" />
     <ClCompile Include="Texture.cpp" />
@@ -156,6 +157,7 @@
     <ClInclude Include="InputListener.h" />
     <ClInclude Include="APreset.h" />
     <ClInclude Include="PresetOne.h" />
+    <ClInclude Include="Pyramid.h" />
     <ClInclude Include="Skybox.h" />
     <ClInclude Include="stb_image.h" />
     <ClInclude Include="System.h" />

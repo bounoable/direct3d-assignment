@@ -35,8 +35,10 @@ public:
 
 	void createSkybox(int index = -1);
 	void createColorCube();
-	void createTextureCube();
-	void createLightTextureCube(bool transparent = false);
+
+	template<typename Mesh>
+	void createMesh(bool transparent = false);
+
 	void createLight();
 	void createPointLight();
 	void createSpotLight();
